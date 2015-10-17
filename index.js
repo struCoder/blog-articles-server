@@ -4,7 +4,9 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var express = require('express');
 var crypto = require('crypto');
+var bl = require('bl');
 var secret = require('./config').secret;
+console.log(secret)
 var log = require('util').log;
 
 var app = express();
@@ -16,7 +18,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(serveStatic('public/articles', {'index': ['index.html', 'index.htm']}));
 app.post('/release-new-version', function(req, res) {
-  var body = req.body.payload;
+  var body = req.body;
   var sig = 'sha1=' + crypto.createHmac('sha1', secret).update(JSON.stringify(body)).digest('hex');
   if (req.headers['x-hub-signature'] && sig === req.headers['x-hub-signature']) {
     log('github webhooks', body);
