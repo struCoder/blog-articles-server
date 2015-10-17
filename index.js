@@ -16,6 +16,7 @@ app.use(cookieParser());
 app.use(serveStatic('public/articles', {'index': ['index.html', 'index.htm']}));
 app.post('/release-new-version', function(req, res) {
   var body = req.body;
+  log('body', typeof body, body);
   if (typeof body.hook !== "object") {
     try {
       body.hook = JSON.parse(body.hook)
@@ -25,22 +26,21 @@ app.post('/release-new-version', function(req, res) {
       res.json({code: 1000, msg: 'forbidden'});
     }
 
-  }
-  log('body', body);
-  if (body && body.hook && body.hook.config && body.hook.config.secret === secret) {
-    log('github webhooks', body);
-    var exec = require('child_process').exec
-    exec('sh gen.sh', function(err, stdout,stderr) {
-      if (err) {
-        log('error:', err)
-      } else {
-        log('stdout: ', stdout);
-        res.json({code: 0, msg: 'success update'});
-      }
-    });
-  } else {
-    res.statusCode = 403;
-    res.json({code: 1000, msg: 'forbidden'});
+    if (body && body.hook && body.hook.config && body.hook.config.secret === secret) {
+      log('github webhooks', body);
+      var exec = require('child_process').exec
+      exec('sh gen.sh', function(err, stdout,stderr) {
+        if (err) {
+          log('error:', err)
+        } else {
+          log('stdout: ', stdout);
+          res.json({code: 0, msg: 'success update'});
+        }
+      });
+    } else {
+      res.statusCode = 403;
+      res.json({code: 1000, msg: 'forbidden'});
+    }
   }
 });
 
